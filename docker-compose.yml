@@ -1,0 +1,43 @@
+﻿version: '3.9'
+
+volumes:
+  wsf_local_postgres_data: {}
+
+
+services:
+#  aspnet_core:
+#    build:
+#      context: .
+#      dockerfile: ./Dockerfile
+#    container_name: wsf_local_asp
+#    depends_on:
+#      - "postgres"
+#    environment:
+#      - ConnectionString=host=worklog_management_db;port=5435;database=wsf;username=postgres;password=postgres;Pooling=true;
+#    ports:
+#      - "5048:5048"
+#    networks:
+#      wsf_local: {}
+
+  postgres:
+    image: postgres
+    container_name: wsf_local_postgres
+    volumes:
+      - wsf_local_postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_HOST=localhost
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=wsf
+      - POSTGRES_USER=debug
+      - POSTGRES_PASSWORD=debug
+      - DATABASE_URL="postgres://debug:debug@postgres:5432/wsf"
+    ports:
+      - "5432:5432"
+    networks:
+      wsf_local: {}
+    restart: always
+
+networks:
+  wsf_local:
+    driver: bridge
+
