@@ -3,6 +3,7 @@ using System;
 using Backend;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Backend.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240519070609_Post_Refactor_Initial_Migration")]
+    partial class Post_Refactor_Initial_Migration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -152,11 +155,7 @@ namespace Backend.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<string>("Latitude")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Longitude")
+                    b.Property<string>("Location")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -164,15 +163,11 @@ namespace Backend.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long?>("StoreHoursId")
-                        .HasColumnType("bigint");
-
                     b.Property<string>("UserAccountId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("StoreHoursId");
 
                     b.HasIndex("UserAccountId");
 
@@ -272,6 +267,9 @@ namespace Backend.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<long>("MarketId")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("Weekend")
                         .IsRequired()
                         .HasColumnType("text");
@@ -281,6 +279,9 @@ namespace Backend.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("MarketId")
+                        .IsUnique();
 
                     b.ToTable("StoreHours");
                 });
@@ -540,15 +541,11 @@ namespace Backend.Migrations
 
             modelBuilder.Entity("Backend.Models.Market", b =>
                 {
-                    b.HasOne("Backend.Models.StoreHours", "StoreHours")
-                        .WithMany()
-                        .HasForeignKey("StoreHoursId");
-
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "UserAccount")
                         .WithMany()
-                        .HasForeignKey("UserAccountId");
-
-                    b.Navigation("StoreHours");
+                        .HasForeignKey("UserAccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("UserAccount");
                 });
@@ -578,6 +575,17 @@ namespace Backend.Migrations
                     b.Navigation("Market");
 
                     b.Navigation("NutritionalValues");
+                });
+
+            modelBuilder.Entity("Backend.Models.StoreHours", b =>
+                {
+                    b.HasOne("Backend.Models.Market", "Market")
+                        .WithOne("StoreHours")
+                        .HasForeignKey("Backend.Models.StoreHours", "MarketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Market");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -652,6 +660,8 @@ namespace Backend.Migrations
                     b.Navigation("Employees");
 
                     b.Navigation("Products");
+
+                    b.Navigation("StoreHours");
                 });
 
             modelBuilder.Entity("Backend.Models.Product", b =>

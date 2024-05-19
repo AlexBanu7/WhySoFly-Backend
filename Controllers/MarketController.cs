@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing.Printing;
 using System.Linq;
 using System.Threading.Tasks;
+using Backend.DTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -75,10 +77,17 @@ namespace Backend.Controllers
 
         // POST: api/Market
         [HttpPost]
-        public async Task<ActionResult<Market>> CreateMarket(Market market)
+        public async Task<ActionResult<Market>> CreateMarket(MarketCreateDTO marketCreateDto)
         {
+            (Market market, StoreHours storeHours) = marketCreateDto.ToMarketAndStoreHours();
+
+            market.StoreHours = storeHours;
+            
             _context.Markets.Add(market);
+            _context.StoreHours.Add(storeHours);
             await _context.SaveChangesAsync();
+            
+            
 
             return CreatedAtAction(
                 nameof(GetMarket),

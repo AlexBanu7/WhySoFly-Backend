@@ -6,6 +6,14 @@ public class CartItem
     
     public bool Accepted { get; set; }
     
+    public string Name { get; set; }
+    
+    public double Quantity { get; set; }
+    
+    public double Volume { get; set; }
+    
+    public double Price { get; set; }
+    
     // Foreign Keys
     
     public long CartId { get; set; }

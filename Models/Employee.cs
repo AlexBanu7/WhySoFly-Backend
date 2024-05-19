@@ -6,9 +6,9 @@ public class Employee
 {
     public long Id { get; set; }
     
-    public string State { get; set; }
+    public string Status { get; set; }
     
-    public float DailyTips { get; set; }
+    public int OrdersDone { get; set; }
     
     // Foreign Keys
     
@@ -17,6 +17,6 @@ public class Employee
     public long MarketId { get; set; }
     public Market Market { get; set; }
     
-    public Guid UserAccountId { get; set; }
+    public string UserAccountId { get; set; }
     public IdentityUser UserAccount { get; set; }
 }

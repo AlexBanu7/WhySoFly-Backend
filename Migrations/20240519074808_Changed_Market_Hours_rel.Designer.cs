@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Backend.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240501160630_AddedTables")]
-    partial class AddedTables
+    [Migration("20240519074808_Changed_Market_Hours_rel")]
+    partial class Changed_Market_Hours_rel
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -36,10 +36,8 @@ namespace Backend.Migrations
                     b.Property<int>("Capacity")
                         .HasColumnType("integer");
 
-                    b.Property<Guid>("CustomerId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("CustomerId1")
+                    b.Property<string>("CustomerId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<long>("EmployeeId")
@@ -54,7 +52,7 @@ namespace Backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CustomerId1");
+                    b.HasIndex("CustomerId");
 
                     b.HasIndex("EmployeeId")
                         .IsUnique();
@@ -76,8 +74,21 @@ namespace Backend.Migrations
                     b.Property<long>("CartId")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<double>("Price")
+                        .HasColumnType("double precision");
+
                     b.Property<long>("ProductId")
                         .HasColumnType("bigint");
+
+                    b.Property<double>("Quantity")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("Volume")
+                        .HasColumnType("double precision");
 
                     b.HasKey("Id");
 
@@ -88,6 +99,23 @@ namespace Backend.Migrations
                     b.ToTable("CartItems");
                 });
 
+            modelBuilder.Entity("Backend.Models.Category", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Categories");
+                });
+
             modelBuilder.Entity("Backend.Models.Employee", b =>
                 {
                     b.Property<long>("Id")
@@ -96,27 +124,25 @@ namespace Backend.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<float>("DailyTips")
-                        .HasColumnType("real");
-
                     b.Property<long>("MarketId")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("State")
+                    b.Property<int>("OrdersDone")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("UserAccountId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("UserAccountId1")
+                    b.Property<string>("UserAccountId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
                     b.HasIndex("MarketId");
 
-                    b.HasIndex("UserAccountId1");
+                    b.HasIndex("UserAccountId");
 
                     b.ToTable("Employees");
                 });
@@ -129,21 +155,68 @@ namespace Backend.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<string>("Location")
+                    b.Property<string>("Latitude")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("UserAccountId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("Longitute")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.Property<string>("UserAccountId1")
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<long?>("StoreHoursId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("UserAccountId")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserAccountId1");
+                    b.HasIndex("StoreHoursId");
+
+                    b.HasIndex("UserAccountId");
 
                     b.ToTable("Markets");
+                });
+
+            modelBuilder.Entity("Backend.Models.NutritionalValues", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<float>("Energy")
+                        .HasColumnType("real");
+
+                    b.Property<float>("Fibers")
+                        .HasColumnType("real");
+
+                    b.Property<float>("Proteins")
+                        .HasColumnType("real");
+
+                    b.Property<float>("SaturatedFats")
+                        .HasColumnType("real");
+
+                    b.Property<float>("Sugars")
+                        .HasColumnType("real");
+
+                    b.Property<float>("TotalCarbohydrates")
+                        .HasColumnType("real");
+
+                    b.Property<float>("TotalFats")
+                        .HasColumnType("real");
+
+                    b.Property<float>("TransFats")
+                        .HasColumnType("real");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("NutritionalValues");
                 });
 
             modelBuilder.Entity("Backend.Models.Product", b =>
@@ -154,6 +227,13 @@ namespace Backend.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<long>("CategoryId")
+                        .HasColumnType("bigint");
+
+                    b.Property<byte[]>("Image")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
                     b.Property<long>("MarketId")
                         .HasColumnType("bigint");
 
@@ -161,15 +241,28 @@ namespace Backend.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<float>("Price")
+                    b.Property<long>("NutritionalValuesId")
+                        .HasColumnType("bigint");
+
+                    b.Property<float>("PricePerQuantity")
                         .HasColumnType("real");
+
+                    b.Property<bool>("SoldByWeight")
+                        .HasColumnType("boolean");
 
                     b.Property<float>("Volume")
                         .HasColumnType("real");
 
+                    b.Property<float>("VolumePerQuantity")
+                        .HasColumnType("real");
+
                     b.HasKey("Id");
 
+                    b.HasIndex("CategoryId");
+
                     b.HasIndex("MarketId");
+
+                    b.HasIndex("NutritionalValuesId");
 
                     b.ToTable("Products");
                 });
@@ -182,9 +275,6 @@ namespace Backend.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("MarketId")
-                        .HasColumnType("bigint");
-
                     b.Property<string>("Weekend")
                         .IsRequired()
                         .HasColumnType("text");
@@ -194,9 +284,6 @@ namespace Backend.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("MarketId")
-                        .IsUnique();
 
                     b.ToTable("StoreHours");
                 });
@@ -401,7 +488,9 @@ namespace Backend.Migrations
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "Customer")
                         .WithMany()
-                        .HasForeignKey("CustomerId1");
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Backend.Models.Employee", "Employee")
                         .WithOne("Cart")
@@ -443,7 +532,9 @@ namespace Backend.Migrations
 
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "UserAccount")
                         .WithMany()
-                        .HasForeignKey("UserAccountId1");
+                        .HasForeignKey("UserAccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Market");
 
@@ -452,33 +543,44 @@ namespace Backend.Migrations
 
             modelBuilder.Entity("Backend.Models.Market", b =>
                 {
+                    b.HasOne("Backend.Models.StoreHours", "StoreHours")
+                        .WithMany()
+                        .HasForeignKey("StoreHoursId");
+
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "UserAccount")
                         .WithMany()
-                        .HasForeignKey("UserAccountId1");
+                        .HasForeignKey("UserAccountId");
+
+                    b.Navigation("StoreHours");
 
                     b.Navigation("UserAccount");
                 });
 
             modelBuilder.Entity("Backend.Models.Product", b =>
                 {
+                    b.HasOne("Backend.Models.Category", "Category")
+                        .WithMany("Products")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Backend.Models.Market", "Market")
                         .WithMany("Products")
                         .HasForeignKey("MarketId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Market");
-                });
-
-            modelBuilder.Entity("Backend.Models.StoreHours", b =>
-                {
-                    b.HasOne("Backend.Models.Market", "Market")
-                        .WithOne("StoreHours")
-                        .HasForeignKey("Backend.Models.StoreHours", "MarketId")
+                    b.HasOne("Backend.Models.NutritionalValues", "NutritionalValues")
+                        .WithMany()
+                        .HasForeignKey("NutritionalValuesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Category");
+
                     b.Navigation("Market");
+
+                    b.Navigation("NutritionalValues");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -537,6 +639,11 @@ namespace Backend.Migrations
                     b.Navigation("CartItems");
                 });
 
+            modelBuilder.Entity("Backend.Models.Category", b =>
+                {
+                    b.Navigation("Products");
+                });
+
             modelBuilder.Entity("Backend.Models.Employee", b =>
                 {
                     b.Navigation("Cart")
@@ -548,9 +655,6 @@ namespace Backend.Migrations
                     b.Navigation("Employees");
 
                     b.Navigation("Products");
-
-                    b.Navigation("StoreHours")
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Backend.Models.Product", b =>

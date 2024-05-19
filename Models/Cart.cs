@@ -17,7 +17,7 @@ public class Cart
     public long EmployeeId { get; set; }
     public Employee Employee { get; set; }
     
-    public Guid CustomerId { get; set; }
+    public string CustomerId { get; set; }
     public IdentityUser Customer { get; set; }
     
     public ICollection<CartItem> CartItems { get; set; }

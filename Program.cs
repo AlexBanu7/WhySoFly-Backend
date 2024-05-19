@@ -15,6 +15,14 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<ApplicationDbContext>(options => 
     options.UseNpgsql(@"Host=localhost:5432;Username=debug;Password=debug;Database=wsf"));
 
+// Allow CORS Headers
+builder.Services.AddCors(option =>
+{
+    option.AddPolicy("allowedOrigin",
+        builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()
+    );
+});
+
 // Add Identity services to the container
 builder.Services.AddAuthorization();
 
@@ -49,7 +57,7 @@ using (var scope = app.Services.CreateScope())
 {
     // Add roles
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    var roles = new[] { "Manager", "Employee", "Customer" };
+    var roles = new[] { "Manager", "Employee", "Customer", "Manager_PENDING", "Employee_PENDING" };
     
     foreach (var role in roles)
     {
@@ -76,6 +84,8 @@ app.MapPost("/logout", async (SignInManager<IdentityUser> signInManager,
     })
     .WithOpenApi()
     .RequireAuthorization();
+
+app.UseCors("allowedOrigin");
 
 app.UseHttpsRedirection();
 

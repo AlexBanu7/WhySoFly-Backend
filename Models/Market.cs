@@ -6,7 +6,11 @@ public class Market
 {
     public long Id { get; set; }
     
-    public string Location { get; set; }
+    public string Name { get; set; }
+    
+    public string Latitude { get; set; }
+    
+    public string Longitude { get; set; }
     
     // Foreign Keys
 
@@ -14,8 +18,9 @@ public class Market
 
     public ICollection<Product>? Products { get; set; }
     
+    public long? StoreHoursId { get; set; }
     public StoreHours? StoreHours { get; set; }
     
-    public Guid UserAccountId { get; set; }
+    public string? UserAccountId { get; set; }
     public IdentityUser? UserAccount { get; set; }
 }
