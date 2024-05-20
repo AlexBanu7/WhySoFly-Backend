@@ -33,9 +33,19 @@ public class IdentityController : ControllerBase
         {
             return NotFound($"User with email {roleAssignDto.email} not found");
         }
+        
+        // Get the list of roles the user currently has
+        var currentRoles = await _userManager.GetRolesAsync(user);
+        
+        // Remove all current roles from the user
+        var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
+        if (!removeResult.Succeeded)
+        {
+            return StatusCode(500, $"Failed to remove roles from user with email {roleAssignDto.email}");
+        }
 
         var result = await _userManager.AddToRoleAsync(user, roleAssignDto.role);
-        return result.Succeeded ? Ok(new { success = true }) : StatusCode(500, $"Failed to assign Customer tole to user with email {roleAssignDto.email}");
+        return result.Succeeded ? Ok(new { success = true }) : StatusCode(500, $"Failed to assign {roleAssignDto.role} role to user with email {roleAssignDto.email}");
     }
     
     [HttpPost("userInfo")]

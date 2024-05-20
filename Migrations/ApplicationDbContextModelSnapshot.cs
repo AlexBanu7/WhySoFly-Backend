@@ -228,7 +228,6 @@ namespace Backend.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<byte[]>("Image")
-                        .IsRequired()
                         .HasColumnType("bytea");
 
                     b.Property<long>("MarketId")
@@ -246,9 +245,6 @@ namespace Backend.Migrations
 
                     b.Property<bool>("SoldByWeight")
                         .HasColumnType("boolean");
-
-                    b.Property<float>("Volume")
-                        .HasColumnType("real");
 
                     b.Property<float>("VolumePerQuantity")
                         .HasColumnType("real");

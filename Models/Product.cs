@@ -6,15 +6,13 @@ public class Product
     
     public string Name { get; set; }
     
-    public float Volume { get; set; }
-    
     public float PricePerQuantity { get; set; }
     
     public float VolumePerQuantity { get; set; }
     
     public bool SoldByWeight { get; set; }
     
-    public byte[] Image { get; set; }
+    public byte[]? Image { get; set; }
     
     // Foreign keys
     

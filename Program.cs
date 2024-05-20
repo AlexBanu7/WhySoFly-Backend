@@ -18,9 +18,13 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // Allow CORS Headers
 builder.Services.AddCors(option =>
 {
-    option.AddPolicy("allowedOrigin",
-        builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()
-    );
+    option.AddPolicy("AllowAll",
+        builder =>
+        {
+            builder.AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader();
+        });
 });
 
 // Add Identity services to the container
@@ -67,8 +71,42 @@ using (var scope = app.Services.CreateScope())
         } 
     }
     
-    // Migrate db
+    // Add Categories and migrate the database
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+    var categories = new[]
+    {
+        "Vegetables", 
+        "Fruits", 
+        "Meat and Seafood",
+        "Diary",
+        "Bakery",
+        "Frozen Foods",
+        "Pantry Staples",
+        "Snacks and Confectionery",
+        "Beverages",
+        "Cleaning Supplies",
+        "Paper Products",
+        "Kitchen Supplies",
+        "Personal Care",
+        "Health and Wellness",
+        "Beauty",
+        "Baby Food and Care",
+        "Pet Supplies",
+        "Home and Garden",
+        "Electronics",
+        "Toys and Games",
+        "Car Care",
+    };
+    foreach (var categoryName in categories)
+    {
+        if (!await dbContext.Categories.AnyAsync(c => c.Name == categoryName))
+        {
+            await dbContext.Categories.AddAsync(new Category { Name = categoryName });
+        }
+    }
+
+    await dbContext.SaveChangesAsync();
     dbContext.Database.Migrate();
 }
 
@@ -85,7 +123,7 @@ app.MapPost("/logout", async (SignInManager<IdentityUser> signInManager,
     .WithOpenApi()
     .RequireAuthorization();
 
-app.UseCors("allowedOrigin");
+app.UseCors("AllowAll");
 
 app.UseHttpsRedirection();
 
