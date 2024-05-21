@@ -10,6 +10,7 @@ using Backend.Models;
 using Backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Backend.Models;
 
 namespace Backend.Controllers;
 
@@ -18,10 +19,12 @@ namespace Backend.Controllers;
 public class IdentityController : ControllerBase
 {
     private readonly UserManager<IdentityUser> _userManager;
+    private readonly ApplicationDbContext _context;
 
-    public IdentityController(UserManager<IdentityUser> userManager)
+    public IdentityController(UserManager<IdentityUser> userManager, ApplicationDbContext context)
     {
         _userManager = userManager;
+        _context = context;
     }
     
     [HttpPost("assignRole")]
@@ -65,6 +68,20 @@ public class IdentityController : ControllerBase
 
         var roles = await _userManager.GetRolesAsync(user);
 
-        return Ok(new { user = user, role = roles[0] });
+        var role = roles[0];
+
+        switch (role)
+        {
+            case "Customer":
+                return Ok(new { user = user, role = roles[0] });
+            case "Manager":
+                var market = await _context.Markets.FirstOrDefaultAsync(m => m.UserAccount == user);
+                return Ok(new { user = user, role = roles[0], market = market });
+            case "Employee":
+                var employee = await _context.Employees.FirstOrDefaultAsync(e => e.UserAccount == user);
+                return Ok(new { user = user, role = roles[0], employee = employee });
+        }
+
+        return BadRequest("Invalid Role");
     }
 }

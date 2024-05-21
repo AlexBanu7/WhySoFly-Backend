@@ -13,6 +13,8 @@ public class MarketCreateDTO
     public string WorkDay { get; set; }
     
     public string Weekend { get; set; }
+    
+    public string Email { get; set; }
 
     public (Market, StoreHours) ToMarketAndStoreHours()
     {
@@ -21,7 +23,8 @@ public class MarketCreateDTO
             Name = Name,
             Latitude = Latitude,
             Longitude = Longitude,
-
+            InvitationKey = Guid.NewGuid(),
+            Verified = false
         }, new StoreHours
         {
             WorkDay = WorkDay,

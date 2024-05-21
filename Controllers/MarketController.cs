@@ -20,7 +20,7 @@ namespace Backend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Market>>> GetMarkets()
         {
-            return await _context.Markets.ToListAsync();
+            return await _context.Markets.Where(m => m.Verified).ToListAsync();
         }
 
         // GET: api/Market/5
@@ -75,12 +75,12 @@ namespace Backend.Controllers
             (Market market, StoreHours storeHours) = marketCreateDto.ToMarketAndStoreHours();
 
             market.StoreHours = storeHours;
-            
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == marketCreateDto.Email);
+            market.UserAccount = user;
+
             _context.Markets.Add(market);
             _context.StoreHours.Add(storeHours);
             await _context.SaveChangesAsync();
-            
-            
 
             return CreatedAtAction(
                 nameof(GetMarket),
@@ -102,6 +102,35 @@ namespace Backend.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+        
+        // POST : api/Market/claim_invite
+        [HttpPost("claimInvite")]
+        public async Task<IActionResult> ClaimInvite(ClaimInviteDTO claimInviteDto)
+        {
+            var market = await _context.Markets.FirstOrDefaultAsync(m => m.InvitationKey == claimInviteDto.InvitationKey);
+            if (market == null)
+            {
+                return NotFound();
+            }
+            
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == claimInviteDto.Email);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            
+            var employee = new Employee
+            {
+                Market = market,
+                UserAccount = user,
+                Status = Status.PendingApproval.Value,
+                OrdersDone = 0
+            };
+            
+            _context.Employees.Add(employee);
+            await _context.SaveChangesAsync();
+            return Ok();
         }
     }
 }
