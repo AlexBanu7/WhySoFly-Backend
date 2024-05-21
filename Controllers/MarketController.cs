@@ -1,14 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Drawing.Printing;
-using System.Linq;
-using System.Threading.Tasks;
 using Backend.DTOs;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Backend.Models;
-using Microsoft.AspNetCore.Authorization;
 
 namespace Backend.Controllers
 {

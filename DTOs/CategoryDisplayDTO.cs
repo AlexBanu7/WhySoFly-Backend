@@ -8,7 +8,7 @@ public class CategoryDisplayDTO
     
     public string Name { get; set; }
     
-    public ICollection<ProductDisplayDTO> Products { get; set; }
+    public ICollection<CategoryProductDisplayDTO> Products { get; set; }
     
     public static CategoryDisplayDTO ToDTO(Category category)
     {
@@ -16,7 +16,7 @@ public class CategoryDisplayDTO
         {
             Id = category.Id,
             Name = category.Name,
-            Products = category.Products.Select(ProductDisplayDTO.ToDTO).ToList()
+            Products = category.Products.Select(CategoryProductDisplayDTO.ToDTO).ToList()
         };
     }
 }

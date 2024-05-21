@@ -2,13 +2,11 @@
 
 namespace Backend.DTOs;
 
-public class ProductDisplayDTO
+public class CategoryProductDisplayDTO
 {
     public long Id { get; set; }
     
     public string Name { get; set; }
-    
-    public string Description { get; set; }
     
     public float PricePerQuantity { get; set; }
     
@@ -16,24 +14,15 @@ public class ProductDisplayDTO
     
     public bool SoldByWeight { get; set; }
     
-    public byte[]? Image { get; set; }
-    
-    // Foreign keys
-    
-    public NutritionalValues? NutritionalValues { get; set; }
-    
-    public static ProductDisplayDTO ToDTO(Product product)
+    public static CategoryProductDisplayDTO ToDTO(Product product)
     {
-        return new ProductDisplayDTO
+        return new CategoryProductDisplayDTO
         {
             Id = product.Id,
             Name = product.Name,
-            Description = product.Description,
             PricePerQuantity = product.PricePerQuantity,
             VolumePerQuantity = product.VolumePerQuantity,
             SoldByWeight = product.SoldByWeight,
-            Image = product.Image,
-            NutritionalValues = product.NutritionalValues
         };
     }
-} 
+}
