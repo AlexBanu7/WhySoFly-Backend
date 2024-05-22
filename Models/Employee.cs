@@ -28,7 +28,6 @@ public class Employee
     public Cart? Cart { get; set; }
     
     public long MarketId { get; set; }
-    [JsonIgnore]
     public Market Market { get; set; }
     
     public string UserAccountId { get; set; }

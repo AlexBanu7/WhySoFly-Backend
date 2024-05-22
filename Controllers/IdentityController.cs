@@ -73,13 +73,21 @@ public class IdentityController : ControllerBase
         switch (role)
         {
             case "Customer":
-                return Ok(new { user = user, role = roles[0] });
+                return Ok(new { user = UserDisplayDTO.ToDTO(user), role = roles[0] });
             case "Manager":
                 var market = await _context.Markets.FirstOrDefaultAsync(m => m.UserAccount == user);
-                return Ok(new { user = user, role = roles[0], market = market });
+                if (market == null)
+                {
+                    return NotFound($"Matching Market for user not found");
+                }
+                return Ok(new { user = UserDisplayDTO.ToDTO(user), role = roles[0], market = MarketDisplayDTO.ToDTO(market) });
             case "Employee":
                 var employee = await _context.Employees.FirstOrDefaultAsync(e => e.UserAccount == user);
-                return Ok(new { user = user, role = roles[0], employee = employee });
+                if (employee == null)
+                {
+                    return NotFound($"Matching Employee account for user not found");
+                }
+                return Ok(new { user = UserDisplayDTO.ToDTO(user), role = roles[0], employee = EmployeeDisplayDTO.ToDTO(employee) });
         }
 
         return BadRequest("Invalid Role");

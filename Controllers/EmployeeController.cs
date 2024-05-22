@@ -1,36 +1,38 @@
-using Backend.DTOs;
+﻿using Backend.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Backend.Models;
-using Microsoft.AspNetCore.Identity;
 
 namespace Backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class MarketController : ControllerBase
+    public class EmployeeController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-        private readonly UserManager<IdentityUser> _userManager;
 
-        public MarketController(UserManager<IdentityUser> userManager, ApplicationDbContext context)
+        public EmployeeController(ApplicationDbContext context)
         {
-            _userManager = userManager;
             _context = context;
         }
 
-        // GET: api/Market
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<MarketDisplayDTO>>> GetMarkets()
+        // Post: api/GetEmployeesByMarket
+        [HttpPost("GetEmployeesByMarket")]
+        public async Task<ActionResult<IEnumerable<EmployeeDisplayDTO>>> GetEmployees(GetEmployeesDTO getEmployeesDto)
         {
-            var markets = await _context.Markets.Where(m => m.Verified).ToListAsync();
-            return markets.Select(MarketDisplayDTO.ToDTO).ToList();
+            var employeesQuery = _context.Employees
+                .Include(e => e.UserAccount)
+                .Include(e => e.Market)
+                .Where(e => e.MarketId == getEmployeesDto.MarketId)
+                .Where(e => (e.Status == Status.PendingApproval.Value) == getEmployeesDto.Pending);
+            var employees = await employeesQuery.ToListAsync();
+            return employees.Select(EmployeeDisplayDTO.ToDTO).ToList();
         }
 
         // GET: api/Market/5
         // <snippet_GetByID>
         [HttpGet("{id}")]
-        public async Task<ActionResult<MarketDisplayDTO>> GetMarket(long id)
+        public async Task<ActionResult<Market>> GetMarket(long id)
         {
             var market = await _context.Markets.FindAsync(id);
 
@@ -39,7 +41,7 @@ namespace Backend.Controllers
                 return NotFound();
             }
 
-            return MarketDisplayDTO.ToDTO(market);
+            return market;
         }
 
         // PUT: api/Market/5
@@ -69,7 +71,7 @@ namespace Backend.Controllers
                 }
             }
 
-            return Ok(MarketDisplayDTO.ToDTO(market));
+            return Ok(market);
         }
 
         // POST: api/Market
@@ -133,51 +135,6 @@ namespace Backend.Controllers
             };
             
             _context.Employees.Add(employee);
-            await _context.SaveChangesAsync();
-            return Ok();
-        }
-
-        // POST : api/Market/approveRequest
-        [HttpPost("approveRequest")]
-        public async Task<IActionResult> ApproveRequest(ApproveRequestDTO approveRequestDto)
-        {
-            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Id == approveRequestDto.EmployeeId);
-            if (employee == null)
-            {
-                return NotFound("Employee of given ID not found!");
-            }  
-            
-            employee.Status = Status.Available.Value;
-            await _context.SaveChangesAsync();
-            return Ok();
-        }
-        
-        // POST : api/Market/rejectRequest
-        [HttpPost("rejectRequest")]
-        public async Task<IActionResult> RejectRequest(ApproveRequestDTO rejectRequestDto)
-        {
-            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Id == rejectRequestDto.EmployeeId);
-            if (employee == null)
-            {
-                return NotFound("Employee of given ID not found!");
-            }  
-            
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == employee.UserAccountId);
-            if (user == null)
-            {
-                return NotFound("Employee's User Account not found!");
-            }  
-            
-            var currentRoles = await _userManager.GetRolesAsync(user);
-        
-            // Remove all current roles from the user
-            var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
-            if (!removeResult.Succeeded)
-            {
-                return StatusCode(500, $"Failed to remove roles from user");
-            }
-            await _userManager.AddToRoleAsync(user, "Customer");
-            _context.Employees.Remove(employee);
             await _context.SaveChangesAsync();
             return Ok();
         }

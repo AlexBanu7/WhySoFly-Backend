@@ -25,7 +25,7 @@ namespace Backend.Controllers
 
         // GET: api/Category
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CategoryDisplayDTO>>> GetCategories(long? market_id)
+        public async Task<ActionResult> GetCategories(long? market_id)
         {
             if (market_id.HasValue)
             {
@@ -37,20 +37,19 @@ namespace Backend.Controllers
                     category.Products = category.Products.Where(p => p.MarketId == market_id.Value).ToList();
                 }
                 
-                return categories.Select(CategoryDisplayDTO.ToDTO).ToList();
+                return Ok(categories.Select(CategoryDisplayDTO.ToDTO).ToList());
             }
             else
             {
-                // If no market_id is provided, return all categories with their products
-                var categories = await _context.Categories.Include(c => c.Products).ToListAsync();
-                return categories.Select(CategoryDisplayDTO.ToDTO).ToList();
+                var categories = await _context.Categories.ToListAsync();
+                return Ok(categories.Select(PlainCategoryDisplayDTO.ToDTO).ToList());
             }
         }
 
         // GET: api/Category/5
         // <snippet_GetByID>
         [HttpGet("{id}")]
-        public async Task<ActionResult<Category>> GetCategory(long id)
+        public async Task<ActionResult<CategoryDisplayDTO>> GetCategory(long id)
         {
             var category = await _context.Categories.FindAsync(id);
 
@@ -59,7 +58,7 @@ namespace Backend.Controllers
                 return NotFound();
             }
 
-            return category;
+            return CategoryDisplayDTO.ToDTO(category);
         }
     }
 }
