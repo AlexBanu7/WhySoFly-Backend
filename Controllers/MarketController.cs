@@ -23,7 +23,7 @@ namespace Backend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MarketDisplayDTO>>> GetMarkets()
         {
-            var markets = await _context.Markets.Where(m => m.Verified).ToListAsync();
+            var markets = await _context.Markets.Where(m => m.Verified && m.Employees != null).ToListAsync();
             return markets.Select(MarketDisplayDTO.ToDTO).ToList();
         }
 
@@ -74,7 +74,7 @@ namespace Backend.Controllers
 
         // POST: api/Market
         [HttpPost]
-        public async Task<ActionResult<Market>> CreateMarket(MarketCreateDTO marketCreateDto)
+        public async Task<ActionResult<MarketDisplayDTO>> CreateMarket(MarketCreateDTO marketCreateDto)
         {
             (Market market, StoreHours storeHours) = marketCreateDto.ToMarketAndStoreHours();
 
@@ -89,7 +89,7 @@ namespace Backend.Controllers
             return CreatedAtAction(
                 nameof(GetMarket),
                 new { id = market.Id },
-                market);
+                MarketDisplayDTO.ToDTO(market));
         }
 
         // DELETE: api/TodoItems/5

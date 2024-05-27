@@ -34,10 +34,12 @@ namespace Backend.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("CustomerId")
-                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long>("EmployeeId")
+                    b.Property<long?>("EmployeeId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("MarketId")
                         .HasColumnType("bigint");
 
                     b.Property<string>("State")
@@ -53,6 +55,8 @@ namespace Backend.Migrations
 
                     b.HasIndex("EmployeeId")
                         .IsUnique();
+
+                    b.HasIndex("MarketId");
 
                     b.ToTable("Carts");
                 });
@@ -491,19 +495,21 @@ namespace Backend.Migrations
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "Customer")
                         .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CustomerId");
 
                     b.HasOne("Backend.Models.Employee", "Employee")
                         .WithOne("Cart")
-                        .HasForeignKey("Backend.Models.Cart", "EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("Backend.Models.Cart", "EmployeeId");
+
+                    b.HasOne("Backend.Models.Market", "Market")
+                        .WithMany()
+                        .HasForeignKey("MarketId");
 
                     b.Navigation("Customer");
 
                     b.Navigation("Employee");
+
+                    b.Navigation("Market");
                 });
 
             modelBuilder.Entity("Backend.Models.CartItem", b =>

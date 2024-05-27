@@ -14,9 +14,9 @@ public class CartDisplayDTO
     
     // Foreign Keys
     
-    public long EmployeeId { get; set; }
+    public long? EmployeeId { get; set; }
     
-    public string CustomerId { get; set; }
+    public string? CustomerId { get; set; }
     
     public ICollection<CartItemDisplayDTO> CartItems { get; set; }
     
