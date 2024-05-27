@@ -14,7 +14,7 @@ public class ProductCreateDTO
     
     public bool SoldByWeight { get; set; }
     
-    public byte[]? Image { get; set; }
+    public string? Image { get; set; }
     
     public long MarketId { get; set; }
     

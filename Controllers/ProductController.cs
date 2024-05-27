@@ -46,15 +46,39 @@ public class ProductController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateProduct(long id, ProductUpdateDTO productUpdateDto)
     {
-        if (id != productUpdateDto.Id)
-        {
-            return BadRequest();
-        }
+        Console.WriteLine(id);
         
         var product = await _context.Products.FindAsync(id);
+        
+        Console.WriteLine(product);
 
         if (product is not null)
         {
+            product.Name = productUpdateDto.Name;
+            product.Description = productUpdateDto.Description;
+            product.PricePerQuantity = productUpdateDto.PricePerQuantity;
+            product.VolumePerQuantity = productUpdateDto.VolumePerQuantity;
+            product.SoldByWeight = productUpdateDto.SoldByWeight;
+            if (productUpdateDto.Image is not null)
+            {
+                product.Image = Convert.FromBase64String(productUpdateDto.Image);
+            }
+            product.CategoryId = productUpdateDto.CategoryId;
+            var nutritionalValues = await _context.NutritionalValues.FindAsync(id);
+            if (nutritionalValues is not null)
+            {
+                nutritionalValues.Energy = productUpdateDto.NutritionalValues.Energy;
+                nutritionalValues.TotalFats = productUpdateDto.NutritionalValues.TotalFats;
+                nutritionalValues.SaturatedFats = productUpdateDto.NutritionalValues.SaturatedFats;
+                nutritionalValues.TransFats = productUpdateDto.NutritionalValues.TransFats;
+                nutritionalValues.TotalCarbohydrates = productUpdateDto.NutritionalValues.TotalCarbohydrates;
+                nutritionalValues.Fibers = productUpdateDto.NutritionalValues.Fibers;
+                nutritionalValues.Sugars = productUpdateDto.NutritionalValues.Sugars;
+                nutritionalValues.Proteins = productUpdateDto.NutritionalValues.Proteins;
+                product.NutritionalValues = nutritionalValues;
+                _context.Entry(nutritionalValues).State = EntityState.Modified;
+            }
+            
             _context.Entry(product).State = EntityState.Modified;
             try
             {
@@ -75,13 +99,13 @@ public class ProductController : ControllerBase
         }
         else
         {
-            return NotFound();
+            return NotFound("Couldn't find ya product!");
         }
     }
 
     // POST: api/Product
     [HttpPost]
-    public async Task<ActionResult<Market>> CreateMarket(ProductCreateDTO productCreateDto)
+    public async Task<ActionResult> CreateProduct(ProductCreateDTO productCreateDto)
     {
         var category = await _context.Categories.FindAsync(productCreateDto.CategoryId);
         
@@ -91,6 +115,11 @@ public class ProductController : ControllerBase
         }
         
         var market = await _context.Markets.FindAsync(productCreateDto.MarketId);
+        
+        if (market is null)
+        {
+            return NotFound();
+        }
 
         var nutritionalValuesCreateDTO = productCreateDto.NutritionalValues;
 
@@ -113,9 +142,9 @@ public class ProductController : ControllerBase
             PricePerQuantity = productCreateDto.PricePerQuantity,
             VolumePerQuantity = productCreateDto.VolumePerQuantity,
             SoldByWeight = productCreateDto.SoldByWeight,
-            Image = productCreateDto.Image,
-            Category = category,
-            Market = market,
+            Image = productCreateDto.Image is not null ? Convert.FromBase64String(productCreateDto.Image) : null,
+            CategoryId = productCreateDto.CategoryId,
+            MarketId = productCreateDto.MarketId,
             NutritionalValues = nutritionalValues
         };
         
@@ -125,7 +154,7 @@ public class ProductController : ControllerBase
         return CreatedAtAction(
             nameof(GetProduct),
             new { id = product.Id },
-            product);
+            ProductDisplayDTO.ToDTO(product));
     }
 
     // DELETE: api/Product/5

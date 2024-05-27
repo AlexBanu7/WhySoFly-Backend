@@ -14,6 +14,10 @@ public class CategoryProductDisplayDTO
     
     public bool SoldByWeight { get; set; }
     
+    public long? MarketId { get; set; }
+    
+    public long? CategoryId { get; set; }
+    
     public static CategoryProductDisplayDTO ToDTO(Product product)
     {
         return new CategoryProductDisplayDTO
@@ -23,6 +27,8 @@ public class CategoryProductDisplayDTO
             PricePerQuantity = product.PricePerQuantity,
             VolumePerQuantity = product.VolumePerQuantity,
             SoldByWeight = product.SoldByWeight,
+            MarketId = product.MarketId,
+            CategoryId = product.CategoryId
         };
     }
 }

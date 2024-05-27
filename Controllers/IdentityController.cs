@@ -52,7 +52,6 @@ public class IdentityController : ControllerBase
     }
     
     [HttpPost("userInfo")]
-    [Authorize]
     public async Task<ActionResult> GetUser([FromBody] string email)
     {
         if (string.IsNullOrEmpty(email))

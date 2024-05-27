@@ -1,9 +1,7 @@
 using Backend;
 using Microsoft.EntityFrameworkCore;
 using Backend.Models;
-using Backend.Services;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,13 +16,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // Allow CORS Headers
 builder.Services.AddCors(option =>
 {
-    option.AddPolicy("AllowAll",
-        builder =>
-        {
-            builder.AllowAnyOrigin()
-                .AllowAnyMethod()
-                .AllowAnyHeader();
-        });
+    option.AddPolicy("allowedOrigin",
+        builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()
+    );
 });
 
 // Add Identity services to the container
@@ -123,7 +117,7 @@ app.MapPost("/logout", async (SignInManager<IdentityUser> signInManager,
     .WithOpenApi()
     .RequireAuthorization();
 
-app.UseCors("AllowAll");
+app.UseCors("allowedOrigin");
 
 app.UseHttpsRedirection();
 

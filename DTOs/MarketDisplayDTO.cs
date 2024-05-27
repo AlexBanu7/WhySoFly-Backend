@@ -18,7 +18,7 @@ public class MarketDisplayDTO
     
     public StoreHours? StoreHours { get; set; }
     
-    public UserDisplayDTO UserAccount { get; set; }
+    public UserDisplayDTO? UserAccount { get; set; }
     
     public static MarketDisplayDTO ToDTO(Market market)
     {
@@ -31,7 +31,7 @@ public class MarketDisplayDTO
             InvitationKey = market.InvitationKey,
             Verified = market.Verified,
             StoreHours = market.StoreHours,
-            UserAccount = UserDisplayDTO.ToDTO(market.UserAccount)
+            UserAccount = market.UserAccount is null ? null : UserDisplayDTO.ToDTO(market.UserAccount)
         };
     }
 }

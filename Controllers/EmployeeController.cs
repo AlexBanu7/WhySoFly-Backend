@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Backend.Models;
+using Microsoft.AspNetCore.Identity;
 
 namespace Backend.Controllers
 {
@@ -10,10 +11,14 @@ namespace Backend.Controllers
     public class EmployeeController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public EmployeeController(ApplicationDbContext context)
+
+        public EmployeeController(UserManager<IdentityUser> userManager, ApplicationDbContext context)
         {
             _context = context;
+            _userManager = userManager;
+
         }
 
         // Post: api/GetEmployeesByMarket
@@ -29,82 +34,31 @@ namespace Backend.Controllers
             return employees.Select(EmployeeDisplayDTO.ToDTO).ToList();
         }
 
-        // GET: api/Market/5
-        // <snippet_GetByID>
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Market>> GetMarket(long id)
-        {
-            var market = await _context.Markets.FindAsync(id);
-
-            if (market == null)
-            {
-                return NotFound();
-            }
-
-            return market;
-        }
-
-        // PUT: api/Market/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateMarket(long id, Market market)
-        {
-            if (id != market.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(market).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!_context.Markets.Any(m => m.Id == id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return Ok(market);
-        }
-
-        // POST: api/Market
-        [HttpPost]
-        public async Task<ActionResult<Market>> CreateMarket(MarketCreateDTO marketCreateDto)
-        {
-            (Market market, StoreHours storeHours) = marketCreateDto.ToMarketAndStoreHours();
-
-            market.StoreHours = storeHours;
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == marketCreateDto.Email);
-            market.UserAccount = user;
-
-            _context.Markets.Add(market);
-            _context.StoreHours.Add(storeHours);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(
-                nameof(GetMarket),
-                new { id = market.Id },
-                market);
-        }
-
-        // DELETE: api/TodoItems/5
+        // DELETE: api/Employee/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteMarket(long id)
+        public async Task<IActionResult> DeleteEmployee(long id)
         {
-            var market = await _context.Markets.FindAsync(id);
-            if (market == null)
+            var employee = await _context.Employees.FindAsync(id);
+            if (employee == null)
             {
-                return NotFound();
+                return NotFound("Employee for given ID not found");
+            }
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == employee.UserAccountId);
+            if (user == null)
+            {
+                return NotFound("User account not found for given Employee");
             }
 
-            _context.Markets.Remove(market);
+            var currentRoles = await _userManager.GetRolesAsync(user);
+        
+            // Remove all current roles from the user
+            var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
+            if (!removeResult.Succeeded)
+            {
+                return StatusCode(500, $"Failed to remove roles from user");
+            }
+            await _userManager.AddToRoleAsync(user, "Customer");
+            _context.Employees.Remove(employee);
             await _context.SaveChangesAsync();
 
             return NoContent();
