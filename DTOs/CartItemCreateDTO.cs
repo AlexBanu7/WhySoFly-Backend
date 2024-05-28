@@ -12,20 +12,24 @@ public class CartItemCreateDTO
     
     public double Price { get; set; }
     
+    public bool Accepted { get; set; }
+    
     // Foreign Keys
     
     public long ProductId { get; set; }
+    
+    public long? CartId { get; set; }
     
     public static CartItem FromDto(CartItemCreateDTO cartItemCreateDTO)
     {
         return new CartItem
         {
-            Accepted = false,
+            Accepted = cartItemCreateDTO.Accepted,
             Name = cartItemCreateDTO.Name,
             Quantity = cartItemCreateDTO.Quantity,
             Volume = cartItemCreateDTO.Volume,
             Price = cartItemCreateDTO.Price,
-            ProductId = cartItemCreateDTO.ProductId
+            ProductId = cartItemCreateDTO.ProductId,
         };
     }
 }

@@ -1,8 +1,11 @@
+using System.Drawing.Printing;
 using Backend;
 using Microsoft.EntityFrameworkCore;
 using Backend.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Net.WebSockets;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -118,6 +121,8 @@ app.MapPost("/logout", async (SignInManager<IdentityUser> signInManager,
     .RequireAuthorization();
 
 app.UseCors("allowedOrigin");
+
+app.UseWebSockets();
 
 app.UseHttpsRedirection();
 

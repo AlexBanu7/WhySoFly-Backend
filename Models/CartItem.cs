@@ -14,6 +14,8 @@ public class CartItem
     
     public double Price { get; set; }
     
+    public byte[]? Image { get; set; }
+    
     // Foreign Keys
     
     public long CartId { get; set; }

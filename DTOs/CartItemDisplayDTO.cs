@@ -16,9 +16,11 @@ public class CartItemDisplayDTO
     
     public double Price { get; set; }
     
+    public byte[]? Image { get; set; }
+    
     public long CartId { get; set; }
     
-    public ProductDisplayDTO Product { get; set; }
+    public long ProductId { get; set; }
     
     public static CartItemDisplayDTO ToDTO(CartItem cartItem)
     {
@@ -30,8 +32,9 @@ public class CartItemDisplayDTO
             Quantity = cartItem.Quantity,
             Volume = cartItem.Volume,
             Price = cartItem.Price,
+            Image = cartItem.Image,
             CartId = cartItem.CartId,
-            Product = ProductDisplayDTO.ToDTO(cartItem.Product)
+            ProductId = cartItem.ProductId
         };
     }
 }

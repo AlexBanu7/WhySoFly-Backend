@@ -10,7 +10,6 @@ public class State
     public string Value { get; set; }
 
     public static State GatheringItems { get { return new State("Gathering Items"); } }
-    public static State ScanningItems { get { return new State("Scanning Items"); } }
     public static State PendingApproval { get { return new State("Pending Approval"); } }
     
     public static State Finished { get { return new State("Finished"); } }
