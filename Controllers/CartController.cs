@@ -56,16 +56,18 @@ public class CartController : ControllerBase
         
         cart.CustomerId = user.Id;
         
-        // var employee = await _context.Employees
-        //     .Include(e => e.UserAccount)
-        //     .FirstOrDefaultAsync(e => e.MarketId == cart.MarketId && e.Status == Status.Available.Value);
-        //
-        // if (employee == null)
-        // {
-        //     return NotFound("No available employee found for given market");
-        // }
+        var employee = await _context.Employees
+            .Include(e => e.UserAccount)
+            .FirstOrDefaultAsync(e => e.MarketId == cart.MarketId && e.Status == Status.Available.Value);
         
-        // cart.EmployeeId = employee.Id;
+        if (employee == null)
+        {
+            return NotFound("No available employee found for given market");
+        }
+        
+        employee.Status = Status.Busy.Value;
+        
+        cart.EmployeeId = employee.Id;
         
         _context.Carts.Add(cart);
         

@@ -20,12 +20,12 @@ public class EmployeeDisplayDTO
     {
         return new EmployeeDisplayDTO
         {
-            Name = employee.UserAccount.UserName,
+            Name = employee.UserAccount is null ? null : employee.UserAccount.UserName,
             Id = employee.Id,
             Status = employee.Status,
             OrdersDone = employee.OrdersDone,
             MarketName = employee.Market.Name,
-            UserAccount = UserDisplayDTO.ToDTO(employee.UserAccount)
+            UserAccount = employee.UserAccount is null ? null : UserDisplayDTO.ToDTO(employee.UserAccount)
         };
     }
 }

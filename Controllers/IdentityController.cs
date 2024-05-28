@@ -81,7 +81,10 @@ public class IdentityController : ControllerBase
                 }
                 return Ok(new { user = UserDisplayDTO.ToDTO(user), role = roles[0], market = MarketDisplayDTO.ToDTO(market) });
             case "Employee":
-                var employee = await _context.Employees.FirstOrDefaultAsync(e => e.UserAccount == user);
+                var employee = await _context.Employees
+                    .Include(e => e.UserAccount)
+                    .Include(e => e.Market)
+                    .FirstOrDefaultAsync(e => e.UserAccount == user);
                 if (employee == null)
                 {
                     return NotFound($"Matching Employee account for user not found");
