@@ -21,6 +21,7 @@ public class CartController : ControllerBase
     [HttpPost("CartByCustomerEmail")]
     public async Task<ActionResult<CartDisplayDTO>> GetActiveCartForCustomer([FromBody] string customerEmail)
     {
+        Console.WriteLine("Sending regards to the customer!");
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == customerEmail);
         
         if (user == null)
@@ -56,27 +57,15 @@ public class CartController : ControllerBase
         
         cart.CustomerId = user.Id;
         
-        var employee = await _context.Employees
-            .Include(e => e.UserAccount)
-            .FirstOrDefaultAsync(e => e.MarketId == cart.MarketId && e.Status == Status.Available.Value);
-        
-        if (employee == null)
-        {
-            return NotFound("No available employee found for given market");
-        }
-        
-        employee.Status = Status.Busy.Value;
-        
-        cart.EmployeeId = employee.Id;
-        
         _context.Carts.Add(cart);
+        _context.CartItems.AddRange(cart.CartItems);
         
         await _context.SaveChangesAsync();
         
         return Ok();
     }
     
-    [HttpPost("cartItem")]
+    [HttpPost("CartItem")]
     public async Task<ActionResult> AddCartItem(CartItemCreateDTO cartItemCreateDto)
     {
         var cartItem = CartItemCreateDTO.FromDto(cartItemCreateDto);

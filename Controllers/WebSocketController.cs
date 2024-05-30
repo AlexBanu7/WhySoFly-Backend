@@ -4,6 +4,7 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 using Backend.DTOs;
+using Backend.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,11 +13,13 @@ namespace Backend.Controllers;
 public class WebSocketController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
+    private readonly WebSocketService _webSocketService;
     private static ConcurrentDictionary<string, WebSocket> _sockets = new ConcurrentDictionary<string, WebSocket>();
 
-    public WebSocketController(ApplicationDbContext context)
+    public WebSocketController(WebSocketService webSocketService, ApplicationDbContext context)
     {
         _context = context;
+        _webSocketService = webSocketService;
     }
 
     [HttpGet("/ws")]
@@ -30,27 +33,40 @@ public class WebSocketController : ControllerBase
             var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
             var clientEmail = Encoding.UTF8.GetString(buffer, 0, result.Count);
 
-            if (_sockets.ContainsKey(clientEmail))
+            if (!_sockets.ContainsKey(clientEmail))
             {
-                // Close the old connection and accept the new one
-                WebSocket oldSocket;
-                if (_sockets.TryRemove(clientEmail, out oldSocket))
-                {
-                    await oldSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing old connection", CancellationToken.None);
-                }
+                // If no existing connection, add the new one
+                _sockets.TryAdd(clientEmail, webSocket);
             }
-
-            _sockets.TryAdd(clientEmail, webSocket);
+            else
+            {
+                // If existing connection, use the old one
+                webSocket = _sockets[clientEmail];
+            }
 
             await Receive(webSocket, async (receiveResult, receiveBuffer) =>
             {
                 if (!receiveResult.CloseStatus.HasValue)
                 {
-                    var market = await _context.Markets.FirstOrDefaultAsync();
-                    var marketDto = MarketDisplayDTO.ToDTO(market);
-                    var marketJson = JsonSerializer.Serialize(marketDto);
-                    var helloWorld = Encoding.UTF8.GetBytes(marketJson);
-                    await webSocket.SendAsync(new ArraySegment<byte>(helloWorld, 0, helloWorld.Length), result.MessageType, result.EndOfMessage, CancellationToken.None);
+                    var message = Encoding.UTF8.GetString(receiveBuffer, 0, receiveResult.Count);
+                    var options = new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    };
+                    MessageDTO messageDTO = JsonSerializer.Deserialize<MessageDTO>(message, options);
+
+                    var commandResult = await _webSocketService.ExecuteCommand(messageDTO, clientEmail);
+                    if (_sockets.ContainsKey(commandResult.Destination))
+                    {
+                        var destinationWebSocket = _sockets[commandResult.Destination];
+                        var responseMessage = Encoding.UTF8.GetBytes(commandResult.Message);
+                        await destinationWebSocket.SendAsync(new ArraySegment<byte>(responseMessage, 0, responseMessage.Length), result.MessageType, result.EndOfMessage, CancellationToken.None);
+                    }
+                    else
+                    {
+                        // Handle the case where the destination is not found in the _sockets dictionary
+                        Console.WriteLine($"Destination {commandResult.Destination} not found in sockets dictionary.");
+                    }
                 }
                 else if (receiveResult.MessageType == WebSocketMessageType.Close)
                 {

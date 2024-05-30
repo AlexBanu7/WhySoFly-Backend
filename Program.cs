@@ -11,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+builder.Services.AddScoped<Backend.Services.WebSocketService>();
 
 // Add DB contexts
 builder.Services.AddDbContext<ApplicationDbContext>(options => 

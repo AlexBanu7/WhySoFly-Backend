@@ -17,7 +17,7 @@ public class CartCreateDTO
         {
             Capacity = 300,
             SubmissionDate = DateTime.Now.ToUniversalTime(),
-            State = State.GatheringItems.Value,
+            State = State.New.Value,
             MarketId = cartCreateDTO.MarketId,
             CartItems = cartCreateDTO.CartItems.Select(CartItemCreateDTO.FromDto).ToList()
         };

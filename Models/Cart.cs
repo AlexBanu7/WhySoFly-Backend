@@ -9,6 +9,7 @@ public class State
 
     public string Value { get; set; }
 
+    public static State New { get { return new State("New"); } }
     public static State GatheringItems { get { return new State("Gathering Items"); } }
     public static State PendingApproval { get { return new State("Pending Approval"); } }
     

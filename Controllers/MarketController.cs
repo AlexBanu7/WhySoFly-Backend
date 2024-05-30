@@ -23,7 +23,9 @@ namespace Backend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MarketDisplayDTO>>> GetMarkets()
         {
-            var markets = await _context.Markets.Where(m => m.Verified && m.Employees != null).ToListAsync();
+            var markets = await _context.Markets
+                .Include(m => m.Employees)
+                .Where(m => m.Verified && m.Employees != null && m.Employees.Count != 0).ToListAsync();
             return markets.Select(MarketDisplayDTO.ToDTO).ToList();
         }
 
