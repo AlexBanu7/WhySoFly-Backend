@@ -92,5 +92,39 @@ namespace Backend.Controllers
             await _context.SaveChangesAsync();
             return Ok();
         }
+        
+        [HttpPost("GoOnBreak")]
+        public async Task<IActionResult> GoOnBreak([FromBody] string email)
+        {
+            var employee = await _context.Employees
+                .Include(e => e.UserAccount)
+                .FirstOrDefaultAsync(e => e.UserAccount.Email == email);
+            if (employee == null)
+            {
+                return NotFound("Employee of given email not found!");
+            }  
+        
+            employee.Status = Status.Break.Value;
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+        
+        [HttpPost("GoAvailable")]
+        public async Task<IActionResult> GoAvailable([FromBody] string email)
+        {
+            var employee = await _context.Employees
+                .Include(e => e.UserAccount)
+                .FirstOrDefaultAsync(e => e.UserAccount.Email == email);
+            if (employee == null)
+            {
+                return NotFound("Employee of given email not found!");
+            }  
+        
+            employee.Status = Status.Available.Value;
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
     }
+    
+    
 }

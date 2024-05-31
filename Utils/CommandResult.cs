@@ -2,6 +2,6 @@
 
 public class CommandResult
 {
-    public string Message { get; set; }
-    public string Destination { get; set; }
+    public List<string> Messages { get; set; }
+    public List<string> Destinations { get; set; }
 }

@@ -56,16 +56,19 @@ public class WebSocketController : ControllerBase
                     MessageDTO messageDTO = JsonSerializer.Deserialize<MessageDTO>(message, options);
 
                     var commandResult = await _webSocketService.ExecuteCommand(messageDTO, clientEmail);
-                    if (_sockets.ContainsKey(commandResult.Destination))
+                    for(int i = 0; i < commandResult.Destinations.Count; i++)
                     {
-                        var destinationWebSocket = _sockets[commandResult.Destination];
-                        var responseMessage = Encoding.UTF8.GetBytes(commandResult.Message);
-                        await destinationWebSocket.SendAsync(new ArraySegment<byte>(responseMessage, 0, responseMessage.Length), result.MessageType, result.EndOfMessage, CancellationToken.None);
-                    }
-                    else
-                    {
-                        // Handle the case where the destination is not found in the _sockets dictionary
-                        Console.WriteLine($"Destination {commandResult.Destination} not found in sockets dictionary.");
+                        if (_sockets.ContainsKey(commandResult.Destinations[i]))
+                        {
+                            var destinationWebSocket = _sockets[commandResult.Destinations[i]];
+                            var responseMessage = Encoding.UTF8.GetBytes(commandResult.Messages[i]);
+                            await destinationWebSocket.SendAsync(new ArraySegment<byte>(responseMessage, 0, responseMessage.Length), receiveResult.MessageType, receiveResult.EndOfMessage, CancellationToken.None);
+                        }
+                        else
+                        {
+                            // Handle the case where the destination is not found in the _sockets dictionary
+                            Console.WriteLine($"Destination {commandResult.Destinations[i]} not found in sockets dictionary.");
+                        }
                     }
                 }
                 else if (receiveResult.MessageType == WebSocketMessageType.Close)

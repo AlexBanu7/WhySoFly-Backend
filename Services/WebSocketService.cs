@@ -2,6 +2,7 @@
 using Backend.Models;
 using Backend.Utils;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Services;
 
@@ -20,8 +21,8 @@ public class WebSocketService
     public async Task<CommandResult> ExecuteCommand(MessageDTO receivedMessage, string socketEmail)
     {
         // Prepare message and destination
-        var destination = socketEmail;
-        var message = "";
+        List<string> destinations = new List<string>();
+        List<string> messages = new List<string>();
         // Prepare objects
         var employee = new Employee();
         var cart = new Cart();
@@ -30,8 +31,9 @@ public class WebSocketService
         var sender = _context.Users.FirstOrDefault(c => c.Email == socketEmail);
         if (sender == null)
         {
-            message = "User not found";
-            return new CommandResult { Message = message, Destination = destination };
+            messages.Add("User not found");
+            destinations.Add(socketEmail);
+            return new CommandResult { Messages = messages, Destinations = destinations };
         }
         // Fetch cart, customer and employee
         var roles = await _userManager.GetRolesAsync(sender);
@@ -39,19 +41,23 @@ public class WebSocketService
         if (role == "Customer")
         {
             customer = sender;
-            cart = _context.Carts.FirstOrDefault(c => c.CustomerId == sender.Id && c.State == State.New.Value);
+            cart = _context.Carts
+                .Include(c => c.CartItems)
+                .FirstOrDefault(c => c.CustomerId == sender.Id && c.State != State.Finished.Value);
             if (cart == null)
             {
-                message = "Cart not found";
-                return new CommandResult { Message = message, Destination = destination };
+                messages.Add("Cart not found");
+                destinations.Add(socketEmail);
+                return new CommandResult { Messages = messages, Destinations = destinations };
             }
             if (cart.EmployeeId != null)
             {
                 employee = _context.Employees.FirstOrDefault(e => e.Id == cart.EmployeeId);
                 if (employee == null)
                 {
-                    message = "Employee for cart not found";
-                    return new CommandResult { Message = message, Destination = destination };
+                    messages.Add("Employee for cart not found");
+                    destinations.Add(socketEmail);
+                    return new CommandResult { Messages = messages, Destinations = destinations };
                 }
             }
         }
@@ -60,20 +66,25 @@ public class WebSocketService
             employee = _context.Employees.FirstOrDefault(e => e.UserAccountId == sender.Id);
             if (employee == null)
             {
-                message = "Employee for sender not found";
-                return new CommandResult { Message = message, Destination = destination };
+                messages.Add("Employee for sender not found");
+                destinations.Add(socketEmail);
+                return new CommandResult { Messages = messages, Destinations = destinations };
             }
-            cart = _context.Carts.FirstOrDefault(c => c.EmployeeId == employee.Id && c.State == State.New.Value);
+            cart = _context.Carts
+                .Include(c => c.CartItems)
+                .FirstOrDefault(c => c.EmployeeId == employee.Id && c.State != State.Finished.Value);
             if (cart == null)
             {
-                message = "Cart not found";
-                return new CommandResult { Message = message, Destination = destination };
+                messages.Add("Cart not found");
+                destinations.Add(socketEmail);
+                return new CommandResult { Messages = messages, Destinations = destinations };
             }
             customer = _context.Users.FirstOrDefault(c => c.Id == cart.CustomerId);
             if (customer == null)
             {
-                message = "Customer for cart not found";
-                return new CommandResult { Message = message, Destination = destination };
+                messages.Add("Customer for cart not found");
+                destinations.Add(socketEmail);
+                return new CommandResult { Messages = messages, Destinations = destinations };
             }
         }
         // Route command
@@ -96,21 +107,43 @@ public class WebSocketService
                 cart.State = State.GatheringItems.Value;
                 await _context.SaveChangesAsync();
                 // Send message to Employee
-                message = "An order has been assigned to you.";
-                destination = employee.UserAccount.Email;
+                messages.Add("An order has been assigned to you.");
+                destinations.Add(employee.UserAccount.Email);
                 break;
             case "Add To Cart":
                 // Customer adds a product to the cart (POST /api/CartItem)...
                 // Customer notifies Socket...
                 // Let the Employee know via socket notification
-                message = "A new product has been added to the cart";
-                destination = employee.UserAccount.Email;
+                messages.Add("A new product has been added to the cart");
+                destinations.Add(employee.UserAccount.Email);
                 break;
             case "Fetched Products":
                 // Employee fetches products physically and notifies socket
                 // Message is relayed to the Customer
-                message = "Products have been fetched";
-                destination = customer.Email;
+                // Move cart to Preparing For Approval state
+                var isAlreadyAccepted = true;
+                foreach (var item in cart.CartItems)
+                {
+                    if (item.Accepted != true)
+                    {
+                        isAlreadyAccepted = false;
+                        break;
+                    }
+                }
+                if (isAlreadyAccepted)
+                {
+                    cart.State = State.Finished.Value;
+                    employee.Status = Status.Break.Value;
+                    messages.Add("The order is finished. Enjoy the break!");
+                    destinations.Add(employee.UserAccount.Email);
+                }
+                else
+                {
+                    cart.State = State.PreparingForApproval.Value;
+                }
+                await _context.SaveChangesAsync();
+                messages.Add("Products have been fetched");
+                destinations.Add(customer.Email);
                 break;
             case "Attached Photos":
                 // Employee attaches verification photographs (TBI PATCH /api/CartItem - maybe in batch?)...
@@ -118,57 +151,37 @@ public class WebSocketService
                 cart.State = State.PendingApproval.Value;
                 await _context.SaveChangesAsync();
                 // Notify the Customer via Socket
-                message = "Verification Photographs have been attached";
-                destination = customer.Email;
+                messages.Add("Verification Photographs have been attached");
+                destinations.Add(customer.Email);
                 break;
-            case "Approve Product":
-                // Customer Approves Product (PATCH /api/CartItem)...
-                // Customer notifies Socket...
-                // Let the Employee know via socket notification
-                message = "A Product has been approved";
-                destination = employee.UserAccount.Email;
-                break;
-            case "Reject Product":
+            case "Rejected Products":
                 // Customer Rejects Product (PATCH /api/CartItem)...
                 // Customer notifies Socket...
                 // Let the Employee know via socket notification
-                message = "A Product has been rejected";
-                destination = employee.UserAccount.Email;
+                messages.Add("Some Products have been rejected");
+                destinations.Add(employee.UserAccount.Email);
                 break;
-            case "Remove Product":
+            case "Removed Products":
+                // TODO: Move to Controller!
                 // Customer removes a product from the cart (DELETE /api/CartItem)...
                 // Customer notifies Socket...
                 // Let the Employee know via socket notification
-                message = "A Product has been removed by the Customer";
-                destination = employee.UserAccount.Email;
+                messages.Add("A Product has been removed by the Customer");
+                destinations.Add(employee.UserAccount.Email);
                 break;
             case "Confirm Cart":
                 // Customer confirms cart via Socket
                 cart.State = State.Finished.Value;
                 employee.Status = Status.Break.Value;
                 await _context.SaveChangesAsync();
-                ExecuteDelayedActionAsync(async ()  =>
-                {
-                    employee.Status = Status.Available.Value;
-                    await _context.SaveChangesAsync();
-                });
                 // Let the Employee know via socket notification
-                message = "The Order has finished";
-                destination = employee.UserAccount.Email;
+                messages.Add("The Order has finished");
+                destinations.Add(employee.UserAccount.Email);
                 break;
             default:
                 Console.WriteLine("Command not found.");
                 break;
         }
-        return new CommandResult { Message = message, Destination = destination };
-    }
-    
-    public async Task ExecuteDelayedActionAsync(Action handleMessage)
-    {
-        // Delay for 5 minutes
-        await Task.Delay(TimeSpan.FromMinutes(5));
-        
-        // Perform the action after the delay
-        handleMessage();
+        return new CommandResult { Messages = messages, Destinations = destinations };
     }
 }

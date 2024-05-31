@@ -11,6 +11,7 @@ public class State
 
     public static State New { get { return new State("New"); } }
     public static State GatheringItems { get { return new State("Gathering Items"); } }
+    public static State PreparingForApproval { get { return new State("Preparing For Approval"); } }
     public static State PendingApproval { get { return new State("Pending Approval"); } }
     
     public static State Finished { get { return new State("Finished"); } }
