@@ -132,4 +132,22 @@ public class CartController : ControllerBase
         
         return Ok();
     }
+    
+    [HttpGet("FinnishOrder/{cartId}")]
+    public async Task<ActionResult> FinnishOrder(long cartId)
+    {
+        var cart = await _context.Carts
+            .FirstOrDefaultAsync(c => c.Id == cartId);
+        
+        if (cart == null)
+        {
+            return NotFound("Cart not found for given id");
+        }
+        
+        cart.State = State.Finished.Value;
+        
+        await _context.SaveChangesAsync();
+        
+        return Ok();
+    }
 }

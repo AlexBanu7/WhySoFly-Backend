@@ -183,11 +183,18 @@ public class WebSocketService
             case "Confirm Cart":
                 // Customer confirms cart via Socket
                 cart.State = State.Approved.Value;
+                await _context.SaveChangesAsync();
+                // Let the Employee know via socket notification
+                messages.Add("The Cart has been confirmed");
+                destinations.Add(employee.UserAccount.Email);
+                break;
+            case "Finnish Order":
+                // Customer confirms cart via Socket
                 employee.Status = Status.Break.Value;
                 await _context.SaveChangesAsync();
                 // Let the Employee know via socket notification
-                messages.Add("The Order has finished");
-                destinations.Add(employee.UserAccount.Email);
+                messages.Add("The Order has finished. Enjoy the break!");
+                destinations.Add(customer.Email);
                 break;
             default:
                 Console.WriteLine("Command not found.");
