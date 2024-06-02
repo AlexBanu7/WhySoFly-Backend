@@ -76,7 +76,7 @@ public class WebSocketService
             }
             cart = _context.Carts
                 .Include(c => c.CartItems)
-                .FirstOrDefault(c => c.EmployeeId == employee.Id && c.State != State.Finished.Value);
+                .FirstOrDefault(c => c.EmployeeId == employee.Id && c.State != State.Finished.Value && c.State != State.Approved.Value);
             if (cart == null)
             {
                 messages.Add("Cart not found");
@@ -143,7 +143,7 @@ public class WebSocketService
                 }
                 if (isAlreadyAccepted)
                 {
-                    cart.State = State.Finished.Value;
+                    cart.State = State.Approved.Value;
                     employee.Status = Status.Break.Value;
                     messages.Add("The order is finished. Enjoy the break!");
                     destinations.Add(employee.UserAccount.Email);
@@ -182,7 +182,7 @@ public class WebSocketService
                 break;
             case "Confirm Cart":
                 // Customer confirms cart via Socket
-                cart.State = State.Finished.Value;
+                cart.State = State.Approved.Value;
                 employee.Status = Status.Break.Value;
                 await _context.SaveChangesAsync();
                 // Let the Employee know via socket notification
