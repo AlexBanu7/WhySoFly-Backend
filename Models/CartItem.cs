@@ -16,6 +16,8 @@ public class CartItem
     
     public byte[]? Image { get; set; }
     
+    public bool Removed { get; set; }
+    
     // Foreign Keys
     
     public long CartId { get; set; }

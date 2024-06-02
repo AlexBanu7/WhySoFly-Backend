@@ -144,9 +144,6 @@ public class WebSocketService
                 if (isAlreadyAccepted)
                 {
                     cart.State = State.Approved.Value;
-                    employee.Status = Status.Break.Value;
-                    messages.Add("The order is finished. Enjoy the break!");
-                    destinations.Add(employee.UserAccount.Email);
                 }
                 else
                 {
@@ -158,42 +155,29 @@ public class WebSocketService
                 break;
             case "Attached Photos":
                 // Employee attaches verification photographs (TBI PATCH /api/CartItem - maybe in batch?)...
-                // Move cart to Pending Approval state
-                cart.State = State.PendingApproval.Value;
-                await _context.SaveChangesAsync();
                 // Notify the Customer via Socket
                 messages.Add("Verification Photographs have been attached");
                 destinations.Add(customer.Email);
                 break;
-            case "Rejected Products":
+            case "Submitted Review":
                 // Customer Rejects Product (PATCH /api/CartItem)...
                 // Customer notifies Socket...
                 // Let the Employee know via socket notification
-                messages.Add("Some Products have been rejected");
-                destinations.Add(employee.UserAccount.Email);
-                break;
-            case "Removed Products":
-                // TODO: Move to Controller!
-                // Customer removes a product from the cart (DELETE /api/CartItem)...
-                // Customer notifies Socket...
-                // Let the Employee know via socket notification
-                messages.Add("Some Products has been removed by the Customer");
+                messages.Add("Products have been reviewed");
                 destinations.Add(employee.UserAccount.Email);
                 break;
             case "Confirm Cart":
                 // Customer confirms cart via Socket
-                cart.State = State.Approved.Value;
-                await _context.SaveChangesAsync();
                 // Let the Employee know via socket notification
                 messages.Add("The Cart has been confirmed");
                 destinations.Add(employee.UserAccount.Email);
                 break;
-            case "Finnish Order":
+            case "Finish Order":
                 // Customer confirms cart via Socket
                 employee.Status = Status.Break.Value;
                 await _context.SaveChangesAsync();
                 // Let the Employee know via socket notification
-                messages.Add("The Order has finished. Enjoy the break!");
+                messages.Add("The Order has finished!");
                 destinations.Add(customer.Email);
                 break;
             default:

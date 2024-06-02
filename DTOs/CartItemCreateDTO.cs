@@ -30,6 +30,7 @@ public class CartItemCreateDTO
             Volume = cartItemCreateDTO.Volume,
             Price = cartItemCreateDTO.Price,
             ProductId = cartItemCreateDTO.ProductId,
+            Removed = false
         };
     }
 }

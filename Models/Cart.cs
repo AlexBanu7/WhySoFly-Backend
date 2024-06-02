@@ -13,6 +13,7 @@ public class State
     public static State GatheringItems { get { return new State("Gathering Items"); } }
     public static State PreparingForApproval { get { return new State("Preparing For Approval"); } }
     public static State PendingApproval { get { return new State("Pending Approval"); } }
+    public static State Removal { get { return new State("Removal"); } }
     public static State Approved { get { return new State("Approved"); } }
     public static State Finished { get { return new State("Finished"); } }
 }
