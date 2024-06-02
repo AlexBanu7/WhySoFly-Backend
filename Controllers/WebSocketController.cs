@@ -32,7 +32,12 @@ public class WebSocketController : ControllerBase
             var buffer = new byte[1024 * 4];
             var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
             var clientEmail = Encoding.UTF8.GetString(buffer, 0, result.Count);
-
+            Console.WriteLine("Received message from client: " + clientEmail);
+            Console.WriteLine("Current sockets dictionary: ");
+            foreach (var key in _sockets.Keys)
+            {
+                Console.WriteLine(key);
+            }
             if (!_sockets.ContainsKey(clientEmail))
             {
                 // If no existing connection, add the new one
@@ -49,15 +54,16 @@ public class WebSocketController : ControllerBase
                 if (!receiveResult.CloseStatus.HasValue)
                 {
                     var message = Encoding.UTF8.GetString(receiveBuffer, 0, receiveResult.Count);
+                    Console.WriteLine("Received message from client: " + message);
                     var options = new JsonSerializerOptions
                     {
                         PropertyNameCaseInsensitive = true
                     };
                     MessageDTO messageDTO = JsonSerializer.Deserialize<MessageDTO>(message, options);
-
                     var commandResult = await _webSocketService.ExecuteCommand(messageDTO, clientEmail);
                     for(int i = 0; i < commandResult.Destinations.Count; i++)
                     {
+                        Console.WriteLine($"Sending '{commandResult.Messages[i]}' to {commandResult.Destinations[i]}");
                         if (_sockets.ContainsKey(commandResult.Destinations[i]))
                         {
                             var destinationWebSocket = _sockets[commandResult.Destinations[i]];
@@ -86,7 +92,7 @@ public class WebSocketController : ControllerBase
         }
     }
     
-    private async Task Receive(WebSocket socket, Action<WebSocketReceiveResult, byte[]> handleMessage)
+    private async Task Receive(WebSocket socket, Func<WebSocketReceiveResult, byte[], Task> handleMessage)
     {
         var buffer = new byte[1024 * 4];
 
@@ -94,7 +100,7 @@ public class WebSocketController : ControllerBase
         {
             var result = await socket.ReceiveAsync(buffer: new ArraySegment<byte>(buffer), cancellationToken: CancellationToken.None);
 
-            handleMessage(result, buffer);
+            await handleMessage(result, buffer);
         }
     }
 }

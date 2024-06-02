@@ -52,7 +52,9 @@ public class WebSocketService
             }
             if (cart.EmployeeId != null)
             {
-                employee = _context.Employees.FirstOrDefault(e => e.Id == cart.EmployeeId);
+                employee = _context.Employees
+                    .Include(e => e.UserAccount)
+                    .FirstOrDefault(e => e.Id == cart.EmployeeId);
                 if (employee == null)
                 {
                     messages.Add("Employee for cart not found");
@@ -63,7 +65,9 @@ public class WebSocketService
         }
         else
         {
-            employee = _context.Employees.FirstOrDefault(e => e.UserAccountId == sender.Id);
+            employee = _context.Employees
+                .Include(e => e.UserAccount)
+                .FirstOrDefault(e => e.UserAccountId == sender.Id);
             if (employee == null)
             {
                 messages.Add("Employee for sender not found");
@@ -95,17 +99,24 @@ public class WebSocketService
                 // Customer Checks out (POST /api/Cart)...
                 // Customer notifies Socket...
                 // Assign an available employee to the cart
-                employee = _context.Employees.FirstOrDefault(e => e.MarketId == cart.MarketId && e.Status == Status.Available.Value);
+                employee = _context.Employees
+                    .Include(e => e.UserAccount)
+                    .FirstOrDefault(e => e.MarketId == cart.MarketId && e.Status == Status.Available.Value);
                 while (employee == null)
                 {
                     Console.WriteLine("Retrying to find available employee");
                     Thread.Sleep(5000);
-                    employee = _context.Employees.FirstOrDefault(e => e.Status == Status.Available.Value);
+                    employee = _context.Employees
+                        .Include(e => e.UserAccount)
+                        .FirstOrDefault(e => e.Status == Status.Available.Value);
                 }
                 employee.Status = Status.Busy.Value;
                 cart.EmployeeId = employee.Id;
                 cart.State = State.GatheringItems.Value;
                 await _context.SaveChangesAsync();
+                // Send message to Customer
+                messages.Add("An employee has been assigned to your cart");
+                destinations.Add(customer.Email);
                 // Send message to Employee
                 messages.Add("An order has been assigned to you.");
                 destinations.Add(employee.UserAccount.Email);
@@ -166,7 +177,7 @@ public class WebSocketService
                 // Customer removes a product from the cart (DELETE /api/CartItem)...
                 // Customer notifies Socket...
                 // Let the Employee know via socket notification
-                messages.Add("A Product has been removed by the Customer");
+                messages.Add("Some Products has been removed by the Customer");
                 destinations.Add(employee.UserAccount.Email);
                 break;
             case "Confirm Cart":
@@ -180,6 +191,8 @@ public class WebSocketService
                 break;
             default:
                 Console.WriteLine("Command not found.");
+                messages.Add("Command not found");
+                destinations.Add(socketEmail);
                 break;
         }
         return new CommandResult { Messages = messages, Destinations = destinations };

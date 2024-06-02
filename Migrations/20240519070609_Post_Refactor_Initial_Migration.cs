@@ -414,8 +414,7 @@ namespace Backend.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Carts_EmployeeId",
                 table: "Carts",
-                column: "EmployeeId",
-                unique: true);
+                column: "EmployeeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Employees_MarketId",
@@ -450,8 +449,7 @@ namespace Backend.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_StoreHours_MarketId",
                 table: "StoreHours",
-                column: "MarketId",
-                unique: true);
+                column: "MarketId");
         }
 
         /// <inheritdoc />

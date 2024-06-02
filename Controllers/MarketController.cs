@@ -117,12 +117,14 @@ namespace Backend.Controllers
             var market = await _context.Markets.FirstOrDefaultAsync(m => m.InvitationKey == claimInviteDto.InvitationKey);
             if (market == null)
             {
+                Console.WriteLine($"Market not found for invitation key: {claimInviteDto.InvitationKey}");
                 return NotFound();
             }
             
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == claimInviteDto.Email);
             if (user == null)
             {
+                Console.WriteLine("User not found");
                 return NotFound();
             }
             
