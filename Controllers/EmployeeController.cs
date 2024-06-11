@@ -124,7 +124,50 @@ namespace Backend.Controllers
             await _context.SaveChangesAsync();
             return Ok();
         }
+        
+        // POST : api/Employee/approveRequest
+        [HttpPost("approveRequest")]
+        public async Task<IActionResult> ApproveRequest(ApproveRequestDTO approveRequestDto)
+        {
+            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Id == approveRequestDto.EmployeeId);
+            if (employee == null)
+            {
+                return NotFound("Employee of given ID not found!");
+            }  
+            
+            employee.Status = Status.Available.Value;
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+        
+        // POST : api/Market/rejectRequest
+        [HttpPost("rejectRequest")]
+        public async Task<IActionResult> RejectRequest(ApproveRequestDTO rejectRequestDto)
+        {
+            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Id == rejectRequestDto.EmployeeId);
+            if (employee == null)
+            {
+                return NotFound("Employee of given ID not found!");
+            }  
+            
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == employee.UserAccountId);
+            if (user == null)
+            {
+                return NotFound("Employee's User Account not found!");
+            }  
+            
+            var currentRoles = await _userManager.GetRolesAsync(user);
+        
+            // Remove all current roles from the user
+            var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
+            if (!removeResult.Succeeded)
+            {
+                return StatusCode(500, $"Failed to remove roles from user");
+            }
+            await _userManager.AddToRoleAsync(user, "Customer");
+            _context.Employees.Remove(employee);
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
     }
-    
-    
 }

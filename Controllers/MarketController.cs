@@ -25,6 +25,8 @@ namespace Backend.Controllers
         {
             var markets = await _context.Markets
                 .Include(m => m.Employees)
+                .Include(m => m.UserAccount)
+                .Include(m => m.StoreHours)
                 .Where(m => m.Verified && m.Employees != null && m.Employees.Count != 0).ToListAsync();
             return markets.Select(MarketDisplayDTO.ToDTO).ToList();
         }
@@ -83,7 +85,7 @@ namespace Backend.Controllers
             market.StoreHours = storeHours;
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == marketCreateDto.Email);
             market.UserAccount = user;
-
+            
             _context.Markets.Add(market);
             _context.StoreHours.Add(storeHours);
             await _context.SaveChangesAsync();
@@ -145,13 +147,13 @@ namespace Backend.Controllers
         [HttpPost("approveRequest")]
         public async Task<IActionResult> ApproveRequest(ApproveRequestDTO approveRequestDto)
         {
-            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Id == approveRequestDto.EmployeeId);
-            if (employee == null)
+            var market = await _context.Markets.FirstOrDefaultAsync(e => e.Id == approveRequestDto.EmployeeId);
+            if (market == null)
             {
-                return NotFound("Employee of given ID not found!");
+                return NotFound("Market of given ID not found!");
             }  
             
-            employee.Status = Status.Available.Value;
+            market.Verified = true;
             await _context.SaveChangesAsync();
             return Ok();
         }
@@ -160,16 +162,16 @@ namespace Backend.Controllers
         [HttpPost("rejectRequest")]
         public async Task<IActionResult> RejectRequest(ApproveRequestDTO rejectRequestDto)
         {
-            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Id == rejectRequestDto.EmployeeId);
-            if (employee == null)
+            var market = await _context.Markets.FirstOrDefaultAsync(e => e.Id == rejectRequestDto.EmployeeId);
+            if (market == null)
             {
-                return NotFound("Employee of given ID not found!");
+                return NotFound("Market of given ID not found!");
             }  
             
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == employee.UserAccountId);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == market.UserAccountId);
             if (user == null)
             {
-                return NotFound("Employee's User Account not found!");
+                return NotFound("Market's User Account not found!");
             }  
             
             var currentRoles = await _userManager.GetRolesAsync(user);
@@ -181,7 +183,7 @@ namespace Backend.Controllers
                 return StatusCode(500, $"Failed to remove roles from user");
             }
             await _userManager.AddToRoleAsync(user, "Customer");
-            _context.Employees.Remove(employee);
+            _context.Markets.Remove(market);
             await _context.SaveChangesAsync();
             return Ok();
         }

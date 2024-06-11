@@ -61,9 +61,11 @@ if (app.Environment.IsDevelopment())
 
 using (var scope = app.Services.CreateScope())
 {
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    
     // Add roles
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    var roles = new[] { "Manager", "Employee", "Customer" };
+    var roles = new[] { "Manager", "Employee", "Customer", "ADMIN" };
     
     foreach (var role in roles)
     {
@@ -73,9 +75,31 @@ using (var scope = app.Services.CreateScope())
         } 
     }
     
-    // Add Categories and migrate the database
-    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+    var admin = await userManager.FindByEmailAsync("whysofly@gmail.com");
+    if (admin == null)
+    {
+        var user = new IdentityUser
+        {
+            Email = "whysofly@gmail.com",
+            UserName = "WhySoFly"
+        };
+        var result = await userManager.CreateAsync(user, "admin");
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(user, "ADMIN");
+            await dbContext.SaveChangesAsync(); // Save changes after assigning role
+        }
+        else
+        {
+            foreach (var error in result.Errors)
+            {
+                Console.WriteLine($"Error: {error.Description}");
+            }
+        }
+    }
 
+    // Add Categories and migrate the database
     var categories = new[]
     {
         "Vegetables", 

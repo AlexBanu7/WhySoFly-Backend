@@ -21,7 +21,6 @@ public class CartController : ControllerBase
     [HttpPost("ByCustomerEmail")]
     public async Task<ActionResult<CartDisplayDTO>> GetActiveCartForCustomer([FromBody] string customerEmail)
     {
-        Console.WriteLine("Sending regards to the customer!");
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == customerEmail);
         
         if (user == null)
@@ -40,6 +39,12 @@ public class CartController : ControllerBase
             return NotFound("No active cart found");
         }
         
+        var employee = await _context.Employees
+            .Include(e => e.UserAccount)
+            .FirstOrDefaultAsync(e => e.Id == cart.EmployeeId);
+
+        cart.Employee = employee;
+        
         cart.CartItems = cart.CartItems.Where(c => c.Removed == false).ToList();
 
         return CartDisplayDTO.ToDTO(cart);
@@ -48,7 +53,9 @@ public class CartController : ControllerBase
     [HttpPost("ByEmployeeId")]
     public async Task<ActionResult<CartDisplayDTO>> GetActiveCartForEmployee([FromBody] long employeeId)
     {
-        var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Id == employeeId);
+        var employee = await _context.Employees
+            .Include(e => e.UserAccount)
+            .FirstOrDefaultAsync(e => e.Id == employeeId);
         
         if (employee == null)
         {
@@ -65,6 +72,8 @@ public class CartController : ControllerBase
         {
             return NotFound("No active cart found");
         }
+
+        cart.Employee = employee;
         
         cart.CartItems = cart.CartItems.Where(c => c.Removed == false).ToList();
         
@@ -151,6 +160,16 @@ public class CartController : ControllerBase
         }
         
         cart.State = State.Finished.Value;
+        
+        var employee = await _context.Employees
+            .FirstOrDefaultAsync(e => e.Id == cart.EmployeeId);
+        
+        if (employee == null)
+        {
+            return NotFound("Employee not found for given id");
+        }
+        
+        employee.Status = Status.Break.Value;
         
         await _context.SaveChangesAsync();
         

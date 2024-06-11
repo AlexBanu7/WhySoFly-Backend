@@ -52,17 +52,17 @@ public class IdentityController : ControllerBase
     }
     
     [HttpPost("userInfo")]
-    public async Task<ActionResult> GetUser([FromBody] string email)
+    public async Task<ActionResult> GetUser([FromBody] string username)
     {
-        if (string.IsNullOrEmpty(email))
+        if (string.IsNullOrEmpty(username))
         {
-            return BadRequest("Email is required.");
+            return BadRequest("User Name is required.");
         }
 
-        var user = await _userManager.FindByEmailAsync(email);
+        var user = await _userManager.FindByNameAsync(username);
         if (user == null)
         {
-            return NotFound($"User with email {email} not found");
+            return NotFound($"User with user name {username} not found");
         }
 
         var roles = await _userManager.GetRolesAsync(user);
@@ -71,6 +71,8 @@ public class IdentityController : ControllerBase
 
         switch (role)
         {
+            case "ADMIN":
+                return Ok(new { user = UserDisplayDTO.ToDTO(user), role = roles[0] });
             case "Customer":
                 return Ok(new { user = UserDisplayDTO.ToDTO(user), role = roles[0] });
             case "Manager":

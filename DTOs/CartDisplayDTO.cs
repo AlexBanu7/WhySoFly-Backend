@@ -16,6 +16,8 @@ public class CartDisplayDTO
     
     public long? EmployeeId { get; set; }
     
+    public string EmployeeName { get; set; }
+    
     public string? CustomerId { get; set; }
     
     public long? MarketId { get; set; }
@@ -31,6 +33,7 @@ public class CartDisplayDTO
             SubmissionDate = cart.SubmissionDate,
             State = cart.State,
             EmployeeId = cart.EmployeeId,
+            EmployeeName = cart.Employee != null ? cart.Employee.UserAccount.UserName : "Unknown",
             CustomerId = cart.CustomerId,
             CartItems = cart.CartItems.Select(CartItemDisplayDTO.ToDTO).ToList(),
             MarketId = cart.MarketId

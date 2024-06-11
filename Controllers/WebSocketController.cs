@@ -32,8 +32,6 @@ public class WebSocketController : ControllerBase
             var buffer = new byte[1024 * 4];
             var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
             var clientEmail = Encoding.UTF8.GetString(buffer, 0, result.Count);
-            Console.WriteLine("Received message from client: " + clientEmail);
-            Console.WriteLine("Current sockets dictionary: ");
             foreach (var key in _sockets.Keys)
             {
                 Console.WriteLine(key);
