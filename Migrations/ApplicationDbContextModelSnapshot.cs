@@ -195,43 +195,6 @@ namespace Backend.Migrations
                     b.ToTable("Markets");
                 });
 
-            modelBuilder.Entity("Backend.Models.NutritionalValues", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<float>("Energy")
-                        .HasColumnType("real");
-
-                    b.Property<float>("Fibers")
-                        .HasColumnType("real");
-
-                    b.Property<float>("Proteins")
-                        .HasColumnType("real");
-
-                    b.Property<float>("SaturatedFats")
-                        .HasColumnType("real");
-
-                    b.Property<float>("Sugars")
-                        .HasColumnType("real");
-
-                    b.Property<float>("TotalCarbohydrates")
-                        .HasColumnType("real");
-
-                    b.Property<float>("TotalFats")
-                        .HasColumnType("real");
-
-                    b.Property<float>("TransFats")
-                        .HasColumnType("real");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("NutritionalValues");
-                });
-
             modelBuilder.Entity("Backend.Models.Product", b =>
                 {
                     b.Property<long>("Id")
@@ -257,9 +220,6 @@ namespace Backend.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long?>("NutritionalValuesId")
-                        .HasColumnType("bigint");
-
                     b.Property<float>("PricePerQuantity")
                         .HasColumnType("real");
 
@@ -274,8 +234,6 @@ namespace Backend.Migrations
                     b.HasIndex("CategoryId");
 
                     b.HasIndex("MarketId");
-
-                    b.HasIndex("NutritionalValuesId");
 
                     b.ToTable("Products");
                 });
@@ -581,15 +539,9 @@ namespace Backend.Migrations
                         .WithMany("Products")
                         .HasForeignKey("MarketId");
 
-                    b.HasOne("Backend.Models.NutritionalValues", "NutritionalValues")
-                        .WithMany()
-                        .HasForeignKey("NutritionalValuesId");
-
                     b.Navigation("Category");
 
                     b.Navigation("Market");
-
-                    b.Navigation("NutritionalValues");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

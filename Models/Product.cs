@@ -24,8 +24,6 @@ public class Product
     public long? CategoryId { get; set; }
     public Category? Category { get; set; }
     
-    public long? NutritionalValuesId { get; set; }
-    public NutritionalValues? NutritionalValues { get; set; }
     
     public ICollection<CartItem>? CartItems { get; set; }
 } 

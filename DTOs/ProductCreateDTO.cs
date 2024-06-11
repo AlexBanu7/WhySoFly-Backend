@@ -18,7 +18,5 @@ public class ProductCreateDTO
     
     public long MarketId { get; set; }
     
-    public NutritionalValuesCreateDTO NutritionalValues { get; set; }
-    
     public long CategoryId { get; set; }
 }

@@ -19,7 +19,6 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
     public DbSet<Product> Products { get; set; }
     public DbSet<StoreHours> StoreHours { get; set; }
     public DbSet<Category> Categories { get; set; }
-    public DbSet<NutritionalValues> NutritionalValues { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -15,6 +15,4 @@ public class ProductUpdateDTO
     public string? Image { get; set; }
     
     public long CategoryId { get; set; }
-    
-    public NutritionalValuesCreateDTO NutritionalValues { get; set; }
 } 

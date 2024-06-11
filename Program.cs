@@ -105,7 +105,7 @@ using (var scope = app.Services.CreateScope())
         "Vegetables", 
         "Fruits", 
         "Meat and Seafood",
-        "Diary",
+        "Dairy",
         "Bakery",
         "Frozen Foods",
         "Pantry Staples",

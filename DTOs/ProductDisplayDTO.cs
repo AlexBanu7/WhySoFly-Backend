@@ -20,8 +20,6 @@ public class ProductDisplayDTO
     
     // Foreign keys
     
-    public NutritionalValues? NutritionalValues { get; set; }
-    
     public static ProductDisplayDTO ToDTO(Product product)
     {
         return new ProductDisplayDTO
@@ -33,7 +31,6 @@ public class ProductDisplayDTO
             VolumePerQuantity = product.VolumePerQuantity,
             SoldByWeight = product.SoldByWeight,
             Image = product.Image,
-            NutritionalValues = product.NutritionalValues
         };
     }
 } 

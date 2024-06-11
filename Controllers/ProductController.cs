@@ -21,7 +21,7 @@ public class ProductController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ProductDisplayDTO>>> GetProducts()
     {
-        var products = await _context.Products.Include(p => p.NutritionalValues).ToListAsync();
+        var products = await _context.Products.ToListAsync();
         return products.Select(ProductDisplayDTO.ToDTO).ToList();
     }
 
@@ -31,7 +31,6 @@ public class ProductController : ControllerBase
     public async Task<ActionResult<ProductDisplayDTO>> GetProduct(long id)
     {
         var product = await _context.Products
-            .Include(p => p.NutritionalValues)
             .FirstOrDefaultAsync(p => p.Id == id);
         
         if (product == null)
@@ -64,20 +63,6 @@ public class ProductController : ControllerBase
                 product.Image = Convert.FromBase64String(productUpdateDto.Image);
             }
             product.CategoryId = productUpdateDto.CategoryId;
-            var nutritionalValues = await _context.NutritionalValues.FindAsync(id);
-            if (nutritionalValues is not null)
-            {
-                nutritionalValues.Energy = productUpdateDto.NutritionalValues.Energy;
-                nutritionalValues.TotalFats = productUpdateDto.NutritionalValues.TotalFats;
-                nutritionalValues.SaturatedFats = productUpdateDto.NutritionalValues.SaturatedFats;
-                nutritionalValues.TransFats = productUpdateDto.NutritionalValues.TransFats;
-                nutritionalValues.TotalCarbohydrates = productUpdateDto.NutritionalValues.TotalCarbohydrates;
-                nutritionalValues.Fibers = productUpdateDto.NutritionalValues.Fibers;
-                nutritionalValues.Sugars = productUpdateDto.NutritionalValues.Sugars;
-                nutritionalValues.Proteins = productUpdateDto.NutritionalValues.Proteins;
-                product.NutritionalValues = nutritionalValues;
-                _context.Entry(nutritionalValues).State = EntityState.Modified;
-            }
             
             _context.Entry(product).State = EntityState.Modified;
             try
@@ -120,20 +105,6 @@ public class ProductController : ControllerBase
         {
             return NotFound();
         }
-
-        var nutritionalValuesCreateDTO = productCreateDto.NutritionalValues;
-
-        var nutritionalValues = new NutritionalValues
-        {
-            Energy = nutritionalValuesCreateDTO.Energy,
-            TotalFats = nutritionalValuesCreateDTO.TotalFats,
-            SaturatedFats = nutritionalValuesCreateDTO.SaturatedFats,
-            TransFats = nutritionalValuesCreateDTO.TransFats,
-            TotalCarbohydrates = nutritionalValuesCreateDTO.TotalCarbohydrates,
-            Fibers = nutritionalValuesCreateDTO.Fibers,
-            Sugars = nutritionalValuesCreateDTO.Sugars,
-            Proteins = nutritionalValuesCreateDTO.Proteins
-        };
         
         var product = new Product
         {
@@ -145,7 +116,6 @@ public class ProductController : ControllerBase
             Image = productCreateDto.Image is not null ? Convert.FromBase64String(productCreateDto.Image) : null,
             CategoryId = productCreateDto.CategoryId,
             MarketId = productCreateDto.MarketId,
-            NutritionalValues = nutritionalValues
         };
         
         _context.Products.Add(product);
