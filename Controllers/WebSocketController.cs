@@ -32,10 +32,7 @@ public class WebSocketController : ControllerBase
             var buffer = new byte[1024 * 4];
             var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
             var clientEmail = Encoding.UTF8.GetString(buffer, 0, result.Count);
-            foreach (var key in _sockets.Keys)
-            {
-                Console.WriteLine(key);
-            }
+            Console.WriteLine($"{clientEmail} connected");
             if (!_sockets.ContainsKey(clientEmail))
             {
                 // If no existing connection, add the new one

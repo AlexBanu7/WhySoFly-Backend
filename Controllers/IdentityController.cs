@@ -96,4 +96,18 @@ public class IdentityController : ControllerBase
 
         return BadRequest("Invalid Role");
     }
+    
+    [HttpPatch("userName")]
+    public async Task<IActionResult> ChangeUserName(ChangeUserNameDTO changeUserNameDto)
+    {
+        var user = await _userManager.FindByEmailAsync(changeUserNameDto.Email);
+        if (user == null)
+        {
+            return NotFound($"User with email {changeUserNameDto.Email} not found");
+        }
+
+        user.UserName = changeUserNameDto.NewUserName;
+        var result = await _userManager.UpdateAsync(user);
+        return result.Succeeded ? Ok(new { success = true }) : StatusCode(500, $"{result.Errors.First().Description}");
+    }
 }

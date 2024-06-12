@@ -30,6 +30,17 @@ namespace Backend.Controllers
                 .Where(m => m.Verified && m.Employees != null && m.Employees.Count != 0).ToListAsync();
             return markets.Select(MarketDisplayDTO.ToDTO).ToList();
         }
+        
+        [HttpGet("Untempered")]
+        public async Task<ActionResult<IEnumerable<MarketDisplayDTO>>> GetAllMarkets()
+        {
+            var markets = await _context.Markets
+                .Include(m => m.Employees)
+                .Include(m => m.UserAccount)
+                .Include(m => m.StoreHours)
+                .ToListAsync();
+            return markets.Select(MarketDisplayDTO.ToDTO).ToList();
+        }
 
         // GET: api/Market/5
         // <snippet_GetByID>

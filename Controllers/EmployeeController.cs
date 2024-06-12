@@ -135,7 +135,7 @@ namespace Backend.Controllers
                 return NotFound("Employee of given ID not found!");
             }  
             
-            employee.Status = Status.Available.Value;
+            employee.Status = Status.Break.Value;
             await _context.SaveChangesAsync();
             return Ok();
         }

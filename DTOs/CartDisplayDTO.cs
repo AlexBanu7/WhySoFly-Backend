@@ -22,6 +22,8 @@ public class CartDisplayDTO
     
     public long? MarketId { get; set; }
     
+    public string?  MarketName { get; set; }
+    
     public ICollection<CartItemDisplayDTO> CartItems { get; set; }
     
     public static CartDisplayDTO ToDTO(Cart cart)
@@ -36,7 +38,8 @@ public class CartDisplayDTO
             EmployeeName = cart.Employee != null ? cart.Employee.UserAccount.UserName : "Unknown",
             CustomerId = cart.CustomerId,
             CartItems = cart.CartItems.Select(CartItemDisplayDTO.ToDTO).ToList(),
-            MarketId = cart.MarketId
+            MarketId = cart.MarketId,
+            MarketName = cart.Market != null ? cart.Market.Name : "Unknown"
         };
     }
 }
