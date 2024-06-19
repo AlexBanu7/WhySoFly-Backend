@@ -158,7 +158,9 @@ namespace Backend.Controllers
         [HttpPost("approveRequest")]
         public async Task<IActionResult> ApproveRequest(ApproveRequestDTO approveRequestDto)
         {
-            var market = await _context.Markets.FirstOrDefaultAsync(e => e.Id == approveRequestDto.EmployeeId);
+            var market = await _context.Markets.FirstOrDefaultAsync(
+                e => e.Id == approveRequestDto.EmployeeId
+                );
             if (market == null)
             {
                 return NotFound("Market of given ID not found!");

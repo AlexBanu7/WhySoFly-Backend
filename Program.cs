@@ -123,6 +123,7 @@ using (var scope = app.Services.CreateScope())
         "Electronics",
         "Toys and Games",
         "Car Care",
+        "Discounts"
     };
     foreach (var categoryName in categories)
     {

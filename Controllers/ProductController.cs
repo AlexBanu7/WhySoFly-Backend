@@ -93,19 +93,9 @@ public class ProductController : ControllerBase
     public async Task<ActionResult> CreateProduct(ProductCreateDTO productCreateDto)
     {
         var category = await _context.Categories.FindAsync(productCreateDto.CategoryId);
-        
-        if (category is null)
-        {
-            return NotFound();
-        }
-        
+        if (category is null) { return NotFound(); }
         var market = await _context.Markets.FindAsync(productCreateDto.MarketId);
-        
-        if (market is null)
-        {
-            return NotFound();
-        }
-        
+        if (market is null) { return NotFound(); }
         var product = new Product
         {
             Name = productCreateDto.Name,
